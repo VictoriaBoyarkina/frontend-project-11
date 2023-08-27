@@ -1,0 +1,17 @@
+@font-face {
+	font-family: OverpassMono;
+	src: url(../font/OverpassMono-VariableFont_wght.ttf);
+}
+
+body {
+	font-family: OverpassMono;
+	font-weight: 100;
+}
+
+h1 {
+	font-size: 4rem;
+}
+
+p {
+	line-height: 50%;
+}
