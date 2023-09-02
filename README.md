@@ -15,4 +15,4 @@ yarn build
 to bundle your application
 
 App URL
-http://localhost:8091/
+https://frontend-project-11-kappa-three.vercel.app/
