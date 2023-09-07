@@ -1,45 +1,37 @@
 /* eslint-disable no-undef */
-import onChange from 'on-change';
 
-export default (elements, state) => {
+export default (state, elements) => {
   // BEGIN (write your solution here)
-  const { form, fields } = elements;
-
-  fields.input = document.getElementById('url-input');
-  fields.feedback = document.querySelector('.feedback');
+  const { form, input, feedback } = elements;
 
   const handleErrors = () => {
     if (!state.form.errors) {
-      fields.input.classList.remove('is-invalid');
-      fields.input.classList.add('is-valid');
+      input.classList.remove('is-invalid');
+      input.classList.add('is-valid');
     } else {
-      fields.input.classList.add('is-invalid');
-      fields.input.classList.remove('is-valid');
-      fields.feedback.textContent = state.form.errors;
+      input.classList.add('is-invalid');
+      input.classList.remove('is-valid');
+      feedback.textContent = state.form.errors;
     }
     form.reset();
     form.focus();
   };
 
   const clearErrors = () => {
-    fields.feedback.textContent = '';
+    feedback.textContent = '';
     form.reset();
     form.focus();
   };
 
-  const watchedState = onChange(state, (path) => {
-    switch (path) {
-      case 'form.errors':
-        handleErrors();
-        break;
-      case 'form.valid':
-        clearErrors();
-        break;
-      default:
-        break;
-    }
-  });
-
-  return watchedState;
+  switch (state.validation.state) {
+    case 'valid':
+      clearErrors();
+      break;
+    case 'invalid':
+      handleErrors();
+      break;
+    default:
+      break;
+  }
   // END
 };
