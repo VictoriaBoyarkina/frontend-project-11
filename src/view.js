@@ -1,37 +1,30 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-undef */
 
-export default (state, elements) => {
-  // BEGIN (write your solution here)
-  const { form, input, feedback } = elements;
+const errorHandler = (elements, err) => {
+  elements.input.classList.add('is-invalid');
+  elements.feedback.textContent = err;
+};
 
-  const handleErrors = () => {
-    if (!state.form.errors) {
-      input.classList.remove('is-invalid');
-      input.classList.add('is-valid');
-    } else {
-      input.classList.add('is-invalid');
-      input.classList.remove('is-valid');
-      feedback.textContent = state.form.errors;
-    }
-    form.reset();
-    form.focus();
-  };
+const finishHandler = (elements) => {
+  elements.input.classList.remove('is-invalid');
+  elements.feedback.textContent = '';
+  elements.input.focus();
+  elements.form.reset();
+};
 
-  const clearErrors = () => {
-    feedback.textContent = '';
-    form.reset();
-    form.focus();
-  };
-
-  switch (state.validation.state) {
-    case 'valid':
-      clearErrors();
+export default (state, elements) => (path, value) => {
+  switch (path) {
+    case 'processState':
+      if (value === 'failed') {
+        errorHandler(elements, state.validation.error);
+      }
+      if (value === 'finished') {
+        finishHandler(elements);
+      }
       break;
-    case 'invalid':
-      handleErrors();
-      break;
+
     default:
       break;
   }
-  // END
 };
