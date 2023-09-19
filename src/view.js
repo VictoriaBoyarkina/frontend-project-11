@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-undef */
 
-const errorHandler = (elements, err) => {
+const errorHandler = (elements, err, i18n) => {
   elements.input.classList.add('is-invalid');
-  elements.feedback.textContent = err;
+  elements.feedback.textContent = i18n.t(err.key);
 };
 
 const finishHandler = (elements) => {
@@ -13,11 +13,11 @@ const finishHandler = (elements) => {
   elements.form.reset();
 };
 
-export default (state, elements) => (path, value) => {
+export default (state, elements, i18n) => (path, value) => {
   switch (path) {
     case 'processState':
       if (value === 'failed') {
-        errorHandler(elements, state.validation.error);
+        errorHandler(elements, state.validation.error, i18n);
       }
       if (value === 'finished') {
         finishHandler(elements);
