@@ -7,7 +7,7 @@ const errorHandler = (elements, err, i18n) => {
   elements.feedback.textContent = i18n.t(err.key);
 };
 
-const finishHandler = (elements) => {
+const finishHandler = (elements, i18n) => {
   elements.input.classList.remove('is-invalid');
   elements.input.focus();
   elements.form.reset();
