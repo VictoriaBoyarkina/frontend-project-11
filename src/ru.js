@@ -8,6 +8,9 @@ export default {
     labelForUrl: 'Ссылка RSS',
     submitBtn: 'Добавить',
     example: 'Пример: https://ru.hexlet.io/lessons.rss',
+    openModal: 'Просмотр',
+    posts: 'Посты',
+    feeds: 'Фиды',
     errors: {
       validation: {
         notOneOf: 'RSS уже существует',

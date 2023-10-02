@@ -2,7 +2,9 @@
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
+import axios from 'axios';
 import render from './view.js';
+import parse from './parser.js';
 import ru from './ru.js';
 
 const initialView = (elements, i18n) => {
@@ -43,6 +45,8 @@ export default (() => {
           submitBtn: document.querySelector('[aria-label="add"]'),
           example: document.querySelector('.example'),
         },
+        feedsContainer: document.querySelector('.feeds'),
+        postsContainer: document.querySelector('.posts'),
         form: document.querySelector('form'),
         input: document.querySelector('input'),
         feedback: document.querySelector('.feedback'),
@@ -58,6 +62,10 @@ export default (() => {
           error: '',
         },
         listOfFeeds: [],
+        rssData: {
+          feeds: [],
+          posts: [],
+        },
       };
 
       const watchedState = onChange(state, render(state, elements, i18n));
@@ -74,13 +82,19 @@ export default (() => {
             watchedState.validation.state = 'valid';
             watchedState.processState = 'sending';
             watchedState.listOfFeeds.push(state.data);
-            watchedState.processState = 'finished';
-            console.log(state.listOfFeeds);
+          })
+          .then(() => {
+            axios.get(`https://allorigins.hexlet.app/raw?url=${state.data}`)
+              .then((response) => {
+                parse(response.data, state);
+                console.log(state);
+                watchedState.processState = 'finished';
+              })
+              .catch((err) => console.log(err));
           })
           .catch((err) => {
             watchedState.validation.state = 'invalid';
             watchedState.validation.error = err.message;
-            console.log(err.message);
             watchedState.processState = 'failed';
           })
           .finally(() => {
