@@ -13,9 +13,11 @@ function parse(data, state) {
   items.forEach((item) => {
     const itemTitle = item.querySelector('title');
     const itemLink = item.querySelector('link');
+    const itemDescription = item.querySelector('description');
     state.rssData.posts.push({
       title: itemTitle.textContent,
       link: itemLink.nextSibling.textContent,
+      description: itemDescription.textContent,
       id: _.uniqueId(),
     });
   });

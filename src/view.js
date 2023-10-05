@@ -1,5 +1,17 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-undef */
+const openModal = (elements, e, state) => {
+  const { modalTitle, modalBody, fullArticle } = elements.initialView.modal;
+  const { id } = e.target.dataset;
+  state.rssData.posts.forEach((post) => {
+    if (post.id === id) {
+      modalTitle.textContent = post.title;
+      modalBody.textContent = post.description;
+      fullArticle.setAttribute('href', `${post.link}`);
+    }
+  });
+};
+
 const renderFeeds = (state, container) => {
   state.rssData.feeds.forEach((feed) => {
     const li = document.createElement('li');
@@ -17,7 +29,7 @@ const renderFeeds = (state, container) => {
   return container;
 };
 
-const renderPosts = (state, container, i18n) => {
+const renderPosts = (state, container, i18n, elements) => {
   state.rssData.posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -35,6 +47,9 @@ const renderPosts = (state, container, i18n) => {
     btn.setAttribute('data-bs-toggle', 'modal');
     btn.setAttribute('data-bs-target', '#modal');
     btn.textContent = i18n.t('openModal');
+    btn.addEventListener('click', (e) => {
+      openModal(elements, e, state);
+    });
     li.appendChild(a);
     li.appendChild(btn);
     container.appendChild(li);
@@ -44,7 +59,7 @@ const renderPosts = (state, container, i18n) => {
 
 const mapping = {
   feeds: (state, container) => renderFeeds(state, container),
-  posts: (state, container, i18n) => renderPosts(state, container, i18n),
+  posts: (state, container, i18n, elements) => renderPosts(state, container, i18n, elements),
 };
 
 const renderRss = (elements, state, i18n) => {
@@ -61,7 +76,7 @@ const renderRss = (elements, state, i18n) => {
     card.appendChild(cardBody);
     const ul = document.createElement('ul');
     ul.classList.add('list-group', 'border-0', 'rounded-0');
-    const newUl = mapping[key](state, ul, i18n);
+    const newUl = mapping[key](state, ul, i18n, elements);
     card.appendChild(newUl);
     container.appendChild(card);
   });

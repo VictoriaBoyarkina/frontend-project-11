@@ -11,13 +11,14 @@ export default {
     openModal: 'Просмотр',
     posts: 'Посты',
     feeds: 'Фиды',
+    fullArticle: 'Читать полностью',
+    closeModal: 'Закрыть',
     errors: {
       validation: {
         notOneOf: 'RSS уже существует',
         default: 'Это поле обязательно',
         url: 'Ссылка должна быть валидным URL',
         successful: 'RSS успешно загружен',
-
       },
     },
   },

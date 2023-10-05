@@ -9,13 +9,15 @@ import ru from './ru.js';
 
 const initialView = (elements, i18n) => {
   const {
-    heading, subheading, submitBtn, labelForUrl, example,
+    heading, subheading, submitBtn, labelForUrl, example, modal,
   } = elements.initialView;
   heading.textContent = i18n.t('heading');
   subheading.textContent = i18n.t('subheading');
   labelForUrl.textContent = i18n.t('labelForUrl');
   submitBtn.textContent = i18n.t('submitBtn');
   example.textContent = i18n.t('example');
+  modal.fullArticle.textContent = i18n.t('fullArticle');
+  modal.closeModal.textContent = i18n.t('closeModal');
 };
 
 export default (() => {
@@ -44,7 +46,14 @@ export default (() => {
           labelForUrl: document.querySelector('[for="url-input"]'),
           submitBtn: document.querySelector('[aria-label="add"]'),
           example: document.querySelector('.example'),
+          modal: {
+            modalTitle: document.querySelector('.modal-title'),
+            modalBody: document.querySelector('.modal-body'),
+            fullArticle: document.querySelector('.full-article'),
+            closeModal: document.querySelector('.modal-footer > [data-bs-dismiss="modal"]'),
+          },
         },
+        body: document.querySelector('body'),
         feedsContainer: document.querySelector('.feeds'),
         postsContainer: document.querySelector('.posts'),
         form: document.querySelector('form'),
@@ -87,10 +96,11 @@ export default (() => {
             axios.get(`https://allorigins.hexlet.app/raw?url=${state.data}`)
               .then((response) => {
                 parse(response.data, state);
-                console.log(state);
                 watchedState.processState = 'finished';
               })
-              .catch((err) => console.log(err));
+              .catch((err) => {
+                watchedState.validation.error = err.message;
+              });
           })
           .catch((err) => {
             watchedState.validation.state = 'invalid';
@@ -101,6 +111,25 @@ export default (() => {
             watchedState.processState = 'filling';
           });
       });
+
+      const check = () => {
+        state.rssData = {
+          feeds: [],
+          posts: [],
+        };
+        state.listOfFeeds.forEach((link) => {
+          axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
+            .then((response) => {
+              parse(response.data, state);
+              watchedState.processState = 'finished';
+            })
+            .catch((err) => {
+              watchedState.validation.error = err.message;
+            });
+        });
+        setTimeout(() => check(), 5000);
+      };
+      check();
       return watchedState;
     // END
     })
