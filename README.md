@@ -17,5 +17,4 @@ to bundle your application
 App URL
 https://frontend-project-11-kappa-three.vercel.app/
 
-GitHub Actions
-https://github.com/VictoriaBoyarkina/frontend-project-11/actions/workflows/hexlet-check.yml
+[![hexlet-check](https://github.com/VictoriaBoyarkina/frontend-project-11/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/VictoriaBoyarkina/frontend-project-11/actions/workflows/hexlet-check.yml)
