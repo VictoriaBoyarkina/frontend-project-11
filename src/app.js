@@ -12,6 +12,7 @@ const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
   // eslint-disable-next-line no-param-reassign
   state.rssData.posts = [...state.rssData.posts, ...preparedPosts];
+  // eslint-disable-next-line no-param-reassign
   state.processState = 'finished';
 };
 
@@ -19,10 +20,9 @@ const getNewPosts = (state) => {
   const promises = state.listOfFeeds
     .map(({ link, feedId }) => axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
       .then((response) => {
-        const posts = parser(response.data.contents);
+        const posts = parse(response.data, state);
         const addedPosts = state.rssData.posts.map((post) => post.link);
         const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
-        console.log('hi!');
         if (newPosts.length > 0) {
           createPosts(state, newPosts, feedId);
         }
@@ -30,6 +30,9 @@ const getNewPosts = (state) => {
       })
       .catch((err) => {
         watchedState.netError = err.message;
+      })
+      .finally(() => {
+        watchedState.processState = 'filling';
       }));
 
   Promise.allSettled(promises)
