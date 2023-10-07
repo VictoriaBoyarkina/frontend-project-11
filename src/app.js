@@ -3,9 +3,39 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
 import axios from 'axios';
+import _ from 'lodash';
 import render from './view.js';
 import parse from './parser.js';
 import ru from './ru.js';
+
+const createPosts = (state, newPosts, feedId) => {
+  const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
+  // eslint-disable-next-line no-param-reassign
+  state.rssData.posts = [...state.rssData.posts, ...preparedPosts];
+};
+
+const getNewPosts = (state) => {
+  const promises = state.listOfFeeds
+    .map(({ link, feedId }) => axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
+      .then((response) => {
+        const posts = parser(response.data.contents);
+        const addedPosts = state.rssData.posts.map((post) => post.link);
+        const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
+        console.log('hi!');
+        if (newPosts.length > 0) {
+          createPosts(state, newPosts, feedId);
+        }
+        return Promise.resolve();
+      })
+      .catch((err) => {
+        watchedState.netError = err.message;
+      }));
+
+  Promise.allSettled(promises)
+    .finally(() => {
+      setTimeout(() => getNewPosts(state), 5000);
+    });
+};
 
 const initialView = (elements, i18n) => {
   const {
@@ -70,17 +100,28 @@ export default (() => {
           state: 'valid',
           error: '',
         },
+        errors: '',
         listOfFeeds: [],
         rssData: {
           feeds: [],
           posts: [],
         },
+        uiState: {
+          viewedPostsId: [],
+        },
       };
 
       const watchedState = onChange(state, render(state, elements, i18n));
+      getNewPosts(watchedState);
+
+      elements.initialView.modal.fullArticle.addEventListener('click', (e) => {
+        const { id } = e.target.dataset;
+        watchedState.uiState.viewedPostsId = [...watchedState.uiState.viewedPostsId, id];
+      });
 
       elements.form.addEventListener('submit', (e) => {
-        const schema = yup.string().url().notOneOf(state.listOfFeeds).trim();
+        const listOfFeeds = state.listOfFeeds.map((feeds) => feeds.link);
+        const schema = yup.string().url().notOneOf(listOfFeeds).trim();
         e.preventDefault();
         watchedState.processState = 'sent';
         const formData = new FormData(e.target);
@@ -90,16 +131,18 @@ export default (() => {
           .then(() => {
             watchedState.validation.state = 'valid';
             watchedState.processState = 'sending';
-            watchedState.listOfFeeds.push(state.data);
           })
           .then(() => {
+            const feed = { link: state.data, feedId: _.uniqueId() };
+            watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
             axios.get(`https://allorigins.hexlet.app/raw?url=${state.data}`)
               .then((response) => {
-                parse(response.data, state);
+                const posts = parse(response.data, watchedState);
+                createPosts(watchedState, posts, feed.feedId);
                 watchedState.processState = 'finished';
               })
-              .catch((err) => {
-                watchedState.validation.error = err.message;
+              .catch(() => {
+                watchedState.error = 'netError';
               });
           })
           .catch((err) => {
@@ -112,24 +155,6 @@ export default (() => {
           });
       });
 
-      const check = () => {
-        state.rssData = {
-          feeds: [],
-          posts: [],
-        };
-        state.listOfFeeds.forEach((link) => {
-          axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
-            .then((response) => {
-              parse(response.data, state);
-              watchedState.processState = 'finished';
-            })
-            .catch((err) => {
-              watchedState.validation.error = err.message;
-            });
-        });
-        setTimeout(() => check(), 5000);
-      };
-      check();
       return watchedState;
     // END
     })

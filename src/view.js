@@ -7,7 +7,19 @@ const openModal = (elements, e, state) => {
     if (post.id === id) {
       modalTitle.textContent = post.title;
       modalBody.textContent = post.description;
+      fullArticle.setAttribute('data-id', id);
       fullArticle.setAttribute('href', `${post.link}`);
+    }
+  });
+};
+
+const renderViewedLinks = (state) => {
+  const links = document.querySelectorAll('a');
+  links.forEach((link) => {
+    const { id } = link.dataset;
+    if (state.uiState.viewedPostsId.includes(id)) {
+      link.classList.add('fw-normal', 'link-secondary');
+      link.classList.remove('fw-bold');
     }
   });
 };
@@ -40,6 +52,11 @@ const renderPosts = (state, container, i18n, elements) => {
     a.setAttribute('data-id', post.id);
     a.setAttribute('rel', 'noopener noreferrer');
     a.textContent = post.title;
+    a.addEventListener('click', (e) => {
+      const { id } = e.target.dataset;
+      state.uiState.viewedPostsId = [...state.uiState.viewedPostsId, id];
+      renderViewedLinks(state);
+    });
     const btn = document.createElement('button');
     btn.classList.add('btn', 'btn-outline-primary', 'btn-sm');
     btn.setAttribute('type', 'button');
@@ -85,7 +102,19 @@ const renderRss = (elements, state, i18n) => {
 const errorHandler = (elements, err, i18n) => {
   elements.input.classList.add('is-invalid');
   elements.feedback.classList.add('text-danger');
-  elements.feedback.textContent = i18n.t(err.key);
+  elements.feedback.textContent = i18n.t('netError');
+};
+
+const netErrorHandler = (state, elements) => {
+  elements.input.classList.add('is-invalid');
+  elements.feedback.classList.add('text-danger');
+  elements.feedback.textContent = i18n.t('errors.netError');
+};
+
+const rssErrorHandler = (state, elements, i18n) => {
+  elements.input.classList.add('is-invalid');
+  elements.feedback.classList.add('text-danger');
+  elements.feedback.textContent = i18n.t('errors.rssError');
 };
 
 const finishHandler = (elements, state, i18n) => {
@@ -108,7 +137,17 @@ export default (state, elements, i18n) => (path, value) => {
         finishHandler(elements, state, i18n);
       }
       break;
-
+    case 'uiState.viewedPostsId':
+      renderViewedLinks(state);
+      break;
+    case 'errors':
+      if (value === 'rssError') {
+        rssErrorHandler(state, elements, i18n);
+      }
+      if (value === 'netError') {
+        netErrorHandler(state, elements, i18n);
+      }
+      break;
     default:
       break;
   }

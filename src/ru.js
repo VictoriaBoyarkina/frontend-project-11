@@ -20,6 +20,8 @@ export default {
         url: 'Ссылка должна быть валидным URL',
         successful: 'RSS успешно загружен',
       },
+      rssError: 'Ресурс не содержит валидный RSS',
+      netError: 'Ошибка сети',
     },
   },
 };
