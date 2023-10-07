@@ -14,7 +14,7 @@ const openModal = (elements, e, state) => {
 };
 
 const renderViewedLinks = (state) => {
-  const links = document.querySelectorAll('a');
+  const links = document.querySelectorAll('.list-group-item > a');
   links.forEach((link) => {
     const { id } = link.dataset;
     if (state.uiState.viewedPostsId.includes(id)) {
@@ -102,7 +102,7 @@ const renderRss = (elements, state, i18n) => {
 const errorHandler = (elements, err, i18n) => {
   elements.input.classList.add('is-invalid');
   elements.feedback.classList.add('text-danger');
-  elements.feedback.textContent = i18n.t('netError');
+  elements.feedback.textContent = i18n.t('errors.netError');
 };
 
 const netErrorHandler = (state, elements) => {

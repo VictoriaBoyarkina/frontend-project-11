@@ -12,6 +12,7 @@ const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
   // eslint-disable-next-line no-param-reassign
   state.rssData.posts = [...state.rssData.posts, ...preparedPosts];
+  state.processState = 'finished';
 };
 
 const getNewPosts = (state) => {
@@ -139,7 +140,6 @@ export default (() => {
               .then((response) => {
                 const posts = parse(response.data, watchedState);
                 createPosts(watchedState, posts, feed.feedId);
-                watchedState.processState = 'finished';
               })
               .catch(() => {
                 watchedState.error = 'netError';
