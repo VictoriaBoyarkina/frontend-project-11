@@ -25,6 +25,7 @@ const renderViewedLinks = (state) => {
 };
 
 const renderFeeds = (state, container) => {
+  container.innerHTML = '';
   state.rssData.feeds.forEach((feed) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
@@ -38,10 +39,10 @@ const renderFeeds = (state, container) => {
     li.appendChild(p);
     container.appendChild(li);
   });
-  return container;
 };
 
 const renderPosts = (state, container, i18n, elements) => {
+  container.innerHTML = '';
   state.rssData.posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
@@ -71,7 +72,6 @@ const renderPosts = (state, container, i18n, elements) => {
     li.appendChild(btn);
     container.appendChild(li);
   });
-  return container;
 };
 
 const mapping = {
@@ -79,7 +79,7 @@ const mapping = {
   posts: (state, container, i18n, elements) => renderPosts(state, container, i18n, elements),
 };
 
-const renderRss = (elements, state, i18n) => {
+const makeCards = (elements, state, i18n) => {
   Object.entries(state.rssData).forEach(([key]) => {
     const container = (key === 'feeds') ? elements.feedsContainer : elements.postsContainer;
     const card = document.createElement('div');
@@ -92,11 +92,21 @@ const renderRss = (elements, state, i18n) => {
     cardBody.appendChild(cardTitle);
     card.appendChild(cardBody);
     const ul = document.createElement('ul');
-    ul.classList.add('list-group', 'border-0', 'rounded-0');
-    const newUl = mapping[key](state, ul, i18n, elements);
-    card.appendChild(newUl);
+    ul.classList.add('list-group', 'border-0', 'rounded-0', `${key}`);
+    card.appendChild(ul);
     container.appendChild(card);
   });
+};
+
+const renderRss = (elements, state, i18n) => {
+  if (!state.touched) {
+    makeCards(elements, state, i18n);
+  }
+  Object.entries(state.rssData).forEach(([key]) => {
+    const ul = document.querySelector(`ul.${key}`);
+    mapping[key](state, ul, i18n, elements);
+  });
+  state.touched = true;
 };
 
 const errorHandler = (elements, err, i18n) => {

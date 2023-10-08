@@ -4,6 +4,7 @@ import onChange from 'on-change';
 import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
+// eslint-disable-next-line import/no-named-as-default
 import render from './view.js';
 import parse from './parser.js';
 import ru from './ru.js';
@@ -20,7 +21,7 @@ const getNewPosts = (state) => {
   const promises = state.listOfFeeds
     .map(({ link, feedId }) => axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
       .then((response) => {
-        const posts = parse(response.data, state);
+        const [, posts] = parse(response.data, state);
         const addedPosts = state.rssData.posts.map((post) => post.link);
         const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
         if (newPosts.length > 0) {
@@ -28,9 +29,9 @@ const getNewPosts = (state) => {
         }
         return Promise.resolve();
       })
-      .catch((err) => {
+      .catch(() => {
         // eslint-disable-next-line no-param-reassign
-        state.netError = err.message;
+        state.errors = 'netError';
       })
       .finally(() => {
         // eslint-disable-next-line no-param-reassign
@@ -107,6 +108,7 @@ export default (() => {
           error: '',
         },
         errors: '',
+        touched: false,
         listOfFeeds: [],
         rssData: {
           feeds: [],
@@ -143,7 +145,8 @@ export default (() => {
             watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
             axios.get(`https://allorigins.hexlet.app/raw?url=${state.data}`)
               .then((response) => {
-                const posts = parse(response.data, watchedState);
+                const [feeds, posts] = parse(response.data, watchedState);
+                state.rssData.feeds = [...state.rssData.feeds, feeds];
                 createPosts(watchedState, posts, feed.feedId);
               })
               .catch(() => {
