@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+//* eslint-disable no-undef */
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
@@ -29,10 +29,12 @@ const getNewPosts = (state) => {
         return Promise.resolve();
       })
       .catch((err) => {
-        watchedState.netError = err.message;
+        // eslint-disable-next-line no-param-reassign
+        state.netError = err.message;
       })
       .finally(() => {
-        watchedState.processState = 'filling';
+        // eslint-disable-next-line no-param-reassign
+        state.processState = 'filling';
       }));
 
   Promise.allSettled(promises)

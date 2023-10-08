@@ -102,7 +102,7 @@ const renderRss = (elements, state, i18n) => {
 const errorHandler = (elements, err, i18n) => {
   elements.input.classList.add('is-invalid');
   elements.feedback.classList.add('text-danger');
-  elements.feedback.textContent = i18n.t('errors.netError');
+  elements.feedback.textContent = i18n.t(err.key);
 };
 
 const netErrorHandler = (state, elements) => {
