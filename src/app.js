@@ -142,9 +142,8 @@ export default (() => {
       const watchedState = onChange(state, render(elements, state, i18n));
       getNewPosts(watchedState);
 
-      elements.modal.button.addEventListener('click', (e) => {
-        const { id } = e.target.dataset;
-        console.log(e.target.dataset);
+      elements.modal.button.addEventListener('click', () => {
+        const id = watchedState.uiState.modalId;
         watchedState.uiState.visitedLinksIds = [...watchedState.uiState.visitedLinksIds, id];
       });
 
