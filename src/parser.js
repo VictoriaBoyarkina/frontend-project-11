@@ -1,33 +1,24 @@
 // eslint-disable-next-line consistent-return
-function parse(data, state) {
+export default (data) => {
   const parser = new DOMParser();
-  const htmLDocument = parser.parseFromString(data, 'text/xml');
-  const rss = htmLDocument.querySelector('rss');
-  if (!rss) {
-    // eslint-disable-next-line no-param-reassign
-    state.errors = 'rssError';
-  } else {
-    // eslint-disable-next-line no-param-reassign
-    const feedTitle = htmLDocument.querySelector('title');
-    const feedDescription = htmLDocument.querySelector('description');
-    const feeds = ({
-      title: feedTitle.textContent,
-      description: feedDescription.textContent,
+  const parsedDocument = parser.parseFromString(data, 'text/xml');
+  const feedTitle = parsedDocument.querySelector('title');
+  const feedDescription = parsedDocument.querySelector('description');
+  const feeds = ({
+    title: feedTitle.textContent,
+    description: feedDescription.textContent,
+  });
+  const items = parsedDocument.querySelectorAll('item');
+  const posts = [];
+  items.forEach((item) => {
+    const itemTitle = item.querySelector('title');
+    const itemLink = item.querySelector('link');
+    const itemDescription = item.querySelector('description');
+    posts.push({
+      title: itemTitle.textContent,
+      link: itemLink.textContent,
+      description: itemDescription.textContent,
     });
-    const items = htmLDocument.querySelectorAll('item');
-    const posts = [];
-    items.forEach((item) => {
-      const itemTitle = item.querySelector('title');
-      const itemLink = item.querySelector('link');
-      const itemDescription = item.querySelector('description');
-      posts.push({
-        title: itemTitle.textContent,
-        link: itemLink.nextSibling.textContent,
-        description: itemDescription.textContent,
-      });
-    });
-    return [feeds, posts];
-  }
-}
-
-export default parse;
+  });
+  return [feeds, posts];
+};

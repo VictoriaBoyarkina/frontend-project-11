@@ -13,15 +13,13 @@ export default {
     feeds: 'Фиды',
     fullArticle: 'Читать полностью',
     closeModal: 'Закрыть',
+    sucсess: 'RSS успешно загружен',
     errors: {
-      validation: {
-        notOneOf: 'RSS уже существует',
-        default: 'Это поле обязательно',
-        url: 'Ссылка должна быть валидным URL',
-        successful: 'RSS успешно загружен',
-      },
-      rssError: 'Ресурс не содержит валидный RSS',
-      netError: 'Ошибка сети',
+      notOneOf: 'RSS уже существует',
+      default: 'Это поле обязательно',
+      url: 'Ссылка должна быть валидным URL',
+      parseError: 'Ресурс не содержит валидный RSS',
+      networkError: 'Ошибка сети',
     },
   },
 };

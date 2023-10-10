@@ -8,13 +8,32 @@ import _ from 'lodash';
 import render from './view.js';
 import parse from './parser.js';
 import ru from './ru.js';
+import checkRss from './checkRss.js';
 
 const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
   // eslint-disable-next-line no-param-reassign
-  state.rssData.posts = [...state.rssData.posts, ...preparedPosts];
+  state.content.posts = [...state.content.posts, ...preparedPosts];
+  const buttonsOpenModal = document.querySelectorAll('button[data-bs-toggle="modal"]');
+  buttonsOpenModal.forEach((button) => {
+    // eslint-disable-next-line no-shadow
+    button.addEventListener('click', (e) => {
+      const { id } = e.target.dataset;
+      // eslint-disable-next-line no-param-reassign
+      state.uiState.modalId = id;
+    });
+  });
+
+  const links = document.querySelectorAll('.list-group-item > a');
+  links.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const { id } = e.target.dataset;
+      // eslint-disable-next-line no-param-reassign
+      state.uiState.visitedLinksIds = [...state.uiState.visitedLinksIds, id];
+    });
+  });
   // eslint-disable-next-line no-param-reassign
-  state.processState = 'finished';
+  state.process.processState = 'finished';
 };
 
 const getAxiosResponse = (link) => {
@@ -27,7 +46,7 @@ const getNewPosts = (state) => {
     .map(({ link, feedId }) => getAxiosResponse(link)
       .then((response) => {
         const [, posts] = parse(response.data.contents, state);
-        const addedPosts = state.rssData.posts.map((post) => post.link);
+        const addedPosts = state.content.posts.map((post) => post.link);
         const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
         if (newPosts.length > 0) {
           createPosts(state, newPosts, feedId);
@@ -36,11 +55,11 @@ const getNewPosts = (state) => {
       })
       .catch(() => {
         // eslint-disable-next-line no-param-reassign
-        state.errors = 'netError';
+        state.watchedState.process.error = 'Network Error';
       })
       .finally(() => {
         // eslint-disable-next-line no-param-reassign
-        state.processState = 'filling';
+        state.process.processState = 'filling';
       }));
 
   Promise.allSettled(promises)
@@ -52,24 +71,24 @@ const getNewPosts = (state) => {
 const initialView = (elements, i18n) => {
   const {
     heading, subheading, submitBtn, labelForUrl, example, modal,
-  } = elements.initialView;
+  } = elements;
   heading.textContent = i18n.t('heading');
   subheading.textContent = i18n.t('subheading');
   labelForUrl.textContent = i18n.t('labelForUrl');
   submitBtn.textContent = i18n.t('submitBtn');
   example.textContent = i18n.t('example');
-  modal.fullArticle.textContent = i18n.t('fullArticle');
-  modal.closeModal.textContent = i18n.t('closeModal');
+  modal.button.textContent = i18n.t('fullArticle');
+  modal.close.textContent = i18n.t('closeModal');
 };
 
 export default (() => {
   yup.setLocale({
     mixed: {
-      notOneOf: () => ({ key: 'errors.validation.notOneOf' }),
-      default: () => ({ key: 'errors.validation.default' }),
+      notOneOf: () => 'notOneOf',
+      default: () => 'default',
     },
     string: {
-      url: () => ({ key: 'errors.validation.url' }),
+      url: () => 'url',
     },
   });
 
@@ -82,23 +101,17 @@ export default (() => {
   })
     .then(() => {
       const elements = {
-        initialView: {
-          heading: document.querySelector('.heading'),
-          subheading: document.querySelector('.subheading'),
-          labelForUrl: document.querySelector('[for="url-input"]'),
-          submitBtn: document.querySelector('[aria-label="add"]'),
-          example: document.querySelector('.example'),
-          modal: {
-            modalTitle: document.querySelector('.modal-title'),
-            modalBody: document.querySelector('.modal-body'),
-            fullArticle: document.querySelector('.full-article'),
-            closeModal: document.querySelector('.modal-footer > [data-bs-dismiss="modal"]'),
-            openModalButton: document.querySelectorAll('[data-bs-toggle="modal"]'),
-          },
+        heading: document.querySelector('.heading'),
+        subheading: document.querySelector('.subheading'),
+        labelForUrl: document.querySelector('[for="url-input"]'),
+        submitBtn: document.querySelector('[aria-label="add"]'),
+        example: document.querySelector('.example'),
+        modal: {
+          title: document.querySelector('.modal-title'),
+          body: document.querySelector('.modal-body'),
+          button: document.querySelector('.full-article'),
+          close: document.querySelector('.modal-footer > [data-bs-dismiss="modal"]'),
         },
-        body: document.querySelector('body'),
-        feedsContainer: document.querySelector('.feeds'),
-        postsContainer: document.querySelector('.posts'),
         form: document.querySelector('form'),
         input: document.querySelector('input'),
         feedback: document.querySelector('.feedback'),
@@ -107,83 +120,74 @@ export default (() => {
       initialView(elements, i18n);
 
       const state = {
-        processState: 'filling',
+        process: {
+          processState: 'filling',
+          error: '',
+        },
         data: '',
         validation: {
           state: 'valid',
-          error: '',
         },
-        errors: '',
-        modal: {
-          state: 'closed',
-          id: '',
-        },
-        touched: false,
         listOfFeeds: [],
-        rssData: {
+        content: {
           feeds: [],
           posts: [],
         },
         uiState: {
-          viewedPostsId: [],
+          visitedLinksIds: [],
+          modalId: '',
         },
       };
 
-      const watchedState = onChange(state, render(state, elements, i18n));
+      const watchedState = onChange(state, render(elements, state, i18n));
       getNewPosts(watchedState);
 
-      elements.initialView.modal.fullArticle.addEventListener('click', (e) => {
+      elements.modal.button.addEventListener('click', (e) => {
         const { id } = e.target.dataset;
-        watchedState.uiState.viewedPostsId = [...watchedState.uiState.viewedPostsId, id];
+        console.log(e.target.dataset);
+        watchedState.uiState.visitedLinksIds = [...watchedState.uiState.visitedLinksIds, id];
       });
-
-      // elements.initialView.modal.openModalButton.forEach((button) => {
-      // console.log('hi')
-      // button.addEventListener('click', (e) => {
-      // const { id } = e.target.dataset;
-      // watchedState.modal.id = id;
-      // watchedState.modal.state = 'open';
-      // });
-      // });
 
       elements.form.addEventListener('submit', (e) => {
         const listOfFeeds = state.listOfFeeds.map((feeds) => feeds.link);
         const schema = yup.string().url().notOneOf(listOfFeeds).trim();
         e.preventDefault();
-        watchedState.processState = 'sent';
         const formData = new FormData(e.target);
         state.data = formData.get('url');
 
         schema.validate(state.data)
           .then(() => {
             watchedState.validation.state = 'valid';
-            watchedState.processState = 'sending';
+            watchedState.process.processState = 'sending';
+            elements.submitBtn.disabled = true;
           })
           .then(() => {
             getAxiosResponse(state.data)
               .then((response) => {
-                const [feeds, posts] = parse(response.data.contents, watchedState);
-                const feed = { link: state.data, feedId: _.uniqueId() };
-                watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
-                state.rssData.feeds = [...state.rssData.feeds, feeds];
-                createPosts(watchedState, posts, feed.feedId);
+                if (!checkRss(response.data.contents)) {
+                  const [feeds, posts] = parse(response.data.contents, watchedState);
+                  const feed = { link: state.data, feedId: _.uniqueId() };
+                  watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
+                  watchedState.content.feeds = [...watchedState.content.feeds, feeds];
+                  createPosts(watchedState, posts, feed.feedId);
+                } else {
+                  watchedState.process.error = 'parseError';
+                }
               })
               .catch(() => {
-                watchedState.error = 'netError';
+                watchedState.process.error = 'network Error';
               });
           })
           .catch((err) => {
             watchedState.validation.state = 'invalid';
-            watchedState.validation.error = err.message;
-            watchedState.processState = 'failed';
+            watchedState.process.error = err.message;
+            watchedState.process.processState = 'failed';
           })
           .finally(() => {
-            watchedState.processState = 'filling';
+            watchedState.process.processState = 'filling';
           });
       });
-
       return watchedState;
-    // END
     })
     .catch((err) => {
       console.log(err);
