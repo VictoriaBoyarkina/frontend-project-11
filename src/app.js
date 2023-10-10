@@ -17,11 +17,16 @@ const createPosts = (state, newPosts, feedId) => {
   state.processState = 'finished';
 };
 
+const getAxiosResponse = (link) => {
+  const fullLink = `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`;
+  return axios.get(fullLink);
+};
+
 const getNewPosts = (state) => {
   const promises = state.listOfFeeds
-    .map(({ link, feedId }) => axios.get(`https://allorigins.hexlet.app/raw?url=${link}`)
+    .map(({ link, feedId }) => getAxiosResponse(link)
       .then((response) => {
-        const [, posts] = parse(response.data, state);
+        const [, posts] = parse(response.data.contents, state);
         const addedPosts = state.rssData.posts.map((post) => post.link);
         const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
         if (newPosts.length > 0) {
@@ -88,6 +93,7 @@ export default (() => {
             modalBody: document.querySelector('.modal-body'),
             fullArticle: document.querySelector('.full-article'),
             closeModal: document.querySelector('.modal-footer > [data-bs-dismiss="modal"]'),
+            openModalButton: document.querySelectorAll('[data-bs-toggle="modal"]'),
           },
         },
         body: document.querySelector('body'),
@@ -108,6 +114,10 @@ export default (() => {
           error: '',
         },
         errors: '',
+        modal: {
+          state: 'closed',
+          id: '',
+        },
         touched: false,
         listOfFeeds: [],
         rssData: {
@@ -127,6 +137,15 @@ export default (() => {
         watchedState.uiState.viewedPostsId = [...watchedState.uiState.viewedPostsId, id];
       });
 
+      // elements.initialView.modal.openModalButton.forEach((button) => {
+      // console.log('hi')
+      // button.addEventListener('click', (e) => {
+      // const { id } = e.target.dataset;
+      // watchedState.modal.id = id;
+      // watchedState.modal.state = 'open';
+      // });
+      // });
+
       elements.form.addEventListener('submit', (e) => {
         const listOfFeeds = state.listOfFeeds.map((feeds) => feeds.link);
         const schema = yup.string().url().notOneOf(listOfFeeds).trim();
@@ -141,11 +160,11 @@ export default (() => {
             watchedState.processState = 'sending';
           })
           .then(() => {
-            const feed = { link: state.data, feedId: _.uniqueId() };
-            watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
-            axios.get(`https://allorigins.hexlet.app/raw?url=${state.data}`)
+            getAxiosResponse(state.data)
               .then((response) => {
-                const [feeds, posts] = parse(response.data, watchedState);
+                const [feeds, posts] = parse(response.data.contents, watchedState);
+                const feed = { link: state.data, feedId: _.uniqueId() };
+                watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
                 state.rssData.feeds = [...state.rssData.feeds, feeds];
                 createPosts(watchedState, posts, feed.feedId);
               })

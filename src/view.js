@@ -1,10 +1,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-undef */
-const openModal = (elements, e, state) => {
+const renderModal = (elements, state) => {
   const { modalTitle, modalBody, fullArticle } = elements.initialView.modal;
-  const { id } = e.target.dataset;
   state.rssData.posts.forEach((post) => {
-    if (post.id === id) {
+    if (post.id === state.modal.id) {
       modalTitle.textContent = post.title;
       modalBody.textContent = post.description;
       fullArticle.setAttribute('data-id', id);
@@ -41,7 +40,7 @@ const renderFeeds = (state, container) => {
   });
 };
 
-const renderPosts = (state, container, i18n, elements) => {
+const renderPosts = (state, container, i18n) => {
   container.innerHTML = '';
   state.rssData.posts.forEach((post) => {
     const li = document.createElement('li');
@@ -65,9 +64,6 @@ const renderPosts = (state, container, i18n, elements) => {
     btn.setAttribute('data-bs-toggle', 'modal');
     btn.setAttribute('data-bs-target', '#modal');
     btn.textContent = i18n.t('openModal');
-    btn.addEventListener('click', (e) => {
-      openModal(elements, e, state);
-    });
     li.appendChild(a);
     li.appendChild(btn);
     container.appendChild(li);
@@ -137,7 +133,7 @@ const finishHandler = (elements, state, i18n) => {
   renderRss(elements, state, i18n);
 };
 
-export default (state, elements, i18n) => (path, value) => {
+const render = (state, elements, i18n) => (path, value) => {
   switch (path) {
     case 'processState':
       if (value === 'failed') {
@@ -149,6 +145,9 @@ export default (state, elements, i18n) => (path, value) => {
       break;
     case 'uiState.viewedPostsId':
       renderViewedLinks(state);
+      break;
+    case 'modal.state':
+      renderModal(elements, state);
       break;
     case 'errors':
       if (value === 'rssError') {
@@ -162,3 +161,5 @@ export default (state, elements, i18n) => (path, value) => {
       break;
   }
 };
+
+export default render;
