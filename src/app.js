@@ -14,6 +14,7 @@ const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
   // eslint-disable-next-line no-param-reassign
   state.content.posts = [...state.content.posts, ...preparedPosts];
+  state.process.processState = 'finished';
   const buttonsOpenModal = document.querySelectorAll('button[data-bs-toggle="modal"]');
   buttonsOpenModal.forEach((button) => {
     // eslint-disable-next-line no-shadow
@@ -33,7 +34,6 @@ const createPosts = (state, newPosts, feedId) => {
     });
   });
   // eslint-disable-next-line no-param-reassign
-  state.process.processState = 'finished';
 };
 
 const getAxiosResponse = (link) => {
@@ -145,6 +145,7 @@ export default (() => {
       elements.modal.button.addEventListener('click', () => {
         const id = watchedState.uiState.modalId;
         watchedState.uiState.visitedLinksIds = [...watchedState.uiState.visitedLinksIds, id];
+        console.log(watchedState.uiState.visitedLinksIds);
       });
 
       elements.form.addEventListener('submit', (e) => {
