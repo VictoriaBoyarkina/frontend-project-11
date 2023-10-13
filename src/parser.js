@@ -4,7 +4,7 @@ export default (data) => {
   const parsedDocument = parser.parseFromString(data, 'text/xml');
   const feedTitle = parsedDocument.querySelector('title');
   const feedDescription = parsedDocument.querySelector('description');
-  const feeds = ({
+  const feed = ({
     title: feedTitle.textContent,
     description: feedDescription.textContent,
   });
@@ -20,5 +20,5 @@ export default (data) => {
       description: itemDescription.textContent,
     });
   });
-  return [feeds, posts];
+  return { feed, posts };
 };

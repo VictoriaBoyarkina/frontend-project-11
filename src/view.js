@@ -99,7 +99,11 @@ const handlerSuccessFinish = (elements, i18n) => {
 const handlerFinishWithError = (elements, error, i18n) => {
   elements.feedback.classList.remove('text-success');
   elements.feedback.classList.add('text-danger');
-  elements.feedback.textContent = i18n.t(`errors.${error.replace(/ /g, '')}`);
+  if (error === "Cannot read properties of null (reading 'textContent')") {
+    elements.feedback.textContent = i18n.t('errors.parseError');
+  } else {
+    elements.feedback.textContent = i18n.t(`errors.${error.replace(/ /g, '').toLowerCase()}`);
+  }
 
   if (error !== 'Network Error') {
     elements.input.classList.add('is-invalid');
@@ -116,7 +120,7 @@ const handlerProcessState = (elements, state, value, i18n) => {
     case 'finished':
       handlerSuccessFinish(elements, i18n);
       break;
-    case 'failed':
+    case 'error':
       handlerFinishWithError(elements, state.process.error, i18n);
       break;
     case 'sending':

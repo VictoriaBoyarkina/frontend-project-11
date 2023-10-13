@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 //* eslint-disable no-undef */
 import * as yup from 'yup';
 import onChange from 'on-change';
@@ -8,32 +9,10 @@ import _ from 'lodash';
 import render from './view.js';
 import parse from './parser.js';
 import ru from './ru.js';
-import checkRss from './checkRss.js';
 
 const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
-  // eslint-disable-next-line no-param-reassign
   state.content.posts = [...state.content.posts, ...preparedPosts];
-  state.process.processState = 'finished';
-  const buttonsOpenModal = document.querySelectorAll('button[data-bs-toggle="modal"]');
-  buttonsOpenModal.forEach((button) => {
-    // eslint-disable-next-line no-shadow
-    button.addEventListener('click', (e) => {
-      const { id } = e.target.dataset;
-      // eslint-disable-next-line no-param-reassign
-      state.uiState.modalId = id;
-    });
-  });
-
-  const links = document.querySelectorAll('.list-group-item > a');
-  links.forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const { id } = e.target.dataset;
-      // eslint-disable-next-line no-param-reassign
-      state.uiState.visitedLinksIds = [...state.uiState.visitedLinksIds, id];
-    });
-  });
-  // eslint-disable-next-line no-param-reassign
 };
 
 const getAxiosResponse = (link) => {
@@ -66,6 +45,15 @@ const getNewPosts = (state) => {
     .finally(() => {
       setTimeout(() => getNewPosts(state), 5000);
     });
+};
+
+const addListenerToPosts = (state) => {
+  const postsContainer = document.querySelector('ul.posts');
+  postsContainer.addEventListener('click', (e) => {
+    const { id } = e.target.dataset;
+    state.uiState.visitedLinksIds = [...state.uiState.visitedLinksIds, id];
+    state.uiState.modalId = id;
+  });
 };
 
 const initialView = (elements, i18n) => {
@@ -142,49 +130,35 @@ export default (() => {
       const watchedState = onChange(state, render(elements, state, i18n));
       getNewPosts(watchedState);
 
-      elements.modal.button.addEventListener('click', () => {
-        const id = watchedState.uiState.modalId;
-        watchedState.uiState.visitedLinksIds = [...watchedState.uiState.visitedLinksIds, id];
-        console.log(watchedState.uiState.visitedLinksIds);
-      });
-
       elements.form.addEventListener('submit', (e) => {
+        e.preventDefault();
         const listOfFeeds = state.listOfFeeds.map((feeds) => feeds.link);
         const schema = yup.string().url().notOneOf(listOfFeeds).trim();
-        e.preventDefault();
         const formData = new FormData(e.target);
-        state.data = formData.get('url');
+        watchedState.data = formData.get('url');
 
         schema.validate(state.data)
           .then(() => {
-            watchedState.validation.state = 'valid';
+            watchedState.valid = true;
             watchedState.process.processState = 'sending';
-            elements.submitBtn.disabled = true;
+            return getAxiosResponse(watchedState.data);
           })
-          .then(() => {
-            getAxiosResponse(state.data)
-              .then((response) => {
-                if (!checkRss(response.data.contents)) {
-                  const [feeds, posts] = parse(response.data.contents, watchedState);
-                  const feed = { link: state.data, feedId: _.uniqueId() };
-                  watchedState.listOfFeeds = [...watchedState.listOfFeeds, feed];
-                  watchedState.content.feeds = [...watchedState.content.feeds, feeds];
-                  createPosts(watchedState, posts, feed.feedId);
-                } else {
-                  watchedState.process.error = 'parseError';
-                }
-              })
-              .catch(() => {
-                watchedState.process.error = 'network Error';
-              });
+          .then((response) => {
+            const data = response.data.contents;
+            const { feed, posts } = parse(data);
+            const feedId = _.uniqueId();
+
+            watchedState.content.feeds.push({ ...feed, feedId, link: watchedState.data });
+            createPosts(watchedState, posts, feedId);
+            addListenerToPosts(watchedState);
+
+            watchedState.process.processState = 'finished';
           })
-          .catch((err) => {
-            watchedState.validation.state = 'invalid';
-            watchedState.process.error = err.message;
-            watchedState.process.processState = 'failed';
-          })
-          .finally(() => {
-            watchedState.process.processState = 'filling';
+          .catch((error) => {
+            watchedState.valid = false;
+            watchedState.process.error = error.message ?? 'defaultError';
+            watchedState.process.processState = 'error';
+            console.log(error.message);
           });
       });
       return watchedState;
