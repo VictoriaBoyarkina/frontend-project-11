@@ -19,7 +19,7 @@ export default {
       default: 'Это поле обязательно',
       url: 'Ссылка должна быть валидным URL',
       parseError: 'Ресурс не содержит валидный RSS',
-      networkError: 'Ошибка сети',
+      NetworkError: 'Ошибка сети',
     },
   },
 };
