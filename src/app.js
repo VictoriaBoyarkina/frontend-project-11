@@ -15,16 +15,21 @@ const createPosts = (state, newPosts, feedId) => {
   state.content.posts = [...state.content.posts, ...preparedPosts];
 };
 
+const validate = (data, listOfFeeds) => {
+  const schema = yup.string().url().notOneOf(listOfFeeds).trim();
+  return schema.validate(data);
+};
+
 const getAxiosResponse = (link) => {
   const fullLink = `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`;
   return axios.get(fullLink);
 };
 
 const getNewPosts = (state) => {
-  const promises = state.listOfFeeds
+  const promises = state.content.feeds
     .map(({ link, feedId }) => getAxiosResponse(link)
       .then((response) => {
-        const [, posts] = parse(response.data.contents, state);
+        const { posts } = parse(response.data.contents);
         const addedPosts = state.content.posts.map((post) => post.link);
         const newPosts = posts.filter((post) => !addedPosts.includes(post.link));
         if (newPosts.length > 0) {
@@ -116,7 +121,6 @@ export default (() => {
         validation: {
           state: 'valid',
         },
-        listOfFeeds: [],
         content: {
           feeds: [],
           posts: [],
@@ -132,12 +136,10 @@ export default (() => {
 
       elements.form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const listOfFeeds = state.listOfFeeds.map((feeds) => feeds.link);
-        const schema = yup.string().url().notOneOf(listOfFeeds).trim();
         const formData = new FormData(e.target);
         watchedState.data = formData.get('url');
-
-        schema.validate(state.data)
+        const listOfFeeds = watchedState.content.feeds.map((feed) => feed.link);
+        validate(watchedState.data, listOfFeeds)
           .then(() => {
             watchedState.valid = true;
             watchedState.process.processState = 'sending';
@@ -158,12 +160,11 @@ export default (() => {
             watchedState.valid = false;
             watchedState.process.error = error.message ?? 'defaultError';
             watchedState.process.processState = 'error';
-            console.log(error.message);
           });
       });
       return watchedState;
     })
     .catch((err) => {
-      console.log(err);
+      throw new Error(err);
     });
 });

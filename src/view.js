@@ -102,7 +102,7 @@ const handlerFinishWithError = (elements, error, i18n) => {
   if (error === "Cannot read properties of null (reading 'textContent')") {
     elements.feedback.textContent = i18n.t('errors.parseError');
   } else {
-    elements.feedback.textContent = i18n.t(`errors.${error.replace(/ /g, '').toLowerCase()}`);
+    elements.feedback.textContent = i18n.t(`errors.${error.replace(/ /g, '')}`);
   }
 
   if (error !== 'Network Error') {
