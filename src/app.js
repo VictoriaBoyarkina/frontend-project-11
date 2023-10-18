@@ -16,7 +16,8 @@ const createPosts = (state, newPosts, feedId) => {
 };
 
 const validate = (data, listOfFeeds) => {
-  const schema = yup.string().url().notOneOf(listOfFeeds).trim();
+  const schema = yup.string().url().required().notOneOf(listOfFeeds)
+    .trim();
   return schema.validate(data);
 };
 
@@ -24,6 +25,8 @@ const getAxiosResponse = (link) => {
   const fullLink = `https://allorigins.hexlet.app/get?disableCache=true&url=${link}`;
   return axios.get(fullLink);
 };
+
+const delay = 5000;
 
 const getNewPosts = (state) => {
   const promises = state.content.feeds
@@ -48,7 +51,7 @@ const getNewPosts = (state) => {
 
   Promise.allSettled(promises)
     .finally(() => {
-      setTimeout(() => getNewPosts(state), 5000);
+      setTimeout(() => getNewPosts(state), delay);
     });
 };
 
@@ -79,6 +82,7 @@ export default (() => {
     mixed: {
       notOneOf: 'notOneOf',
       default: 'default',
+      required: 'required',
     },
     string: {
       url: 'url',
@@ -162,7 +166,6 @@ export default (() => {
             watchedState.process.processState = 'error';
           });
       });
-      return watchedState;
     })
     .catch((err) => {
       throw new Error(err);
