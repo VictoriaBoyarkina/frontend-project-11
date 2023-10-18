@@ -8,7 +8,7 @@ import _ from 'lodash';
 // eslint-disable-next-line import/no-named-as-default
 import render from './view.js';
 import parse from './parser.js';
-import ru from './ru.js';
+import ru from './locals/index.js';
 
 const createPosts = (state, newPosts, feedId) => {
   const preparedPosts = newPosts.map((post) => ({ ...post, feedId, id: _.uniqueId() }));
@@ -77,11 +77,11 @@ const initialView = (elements, i18n) => {
 export default (() => {
   yup.setLocale({
     mixed: {
-      notOneOf: () => 'notOneOf',
-      default: () => 'default',
+      notOneOf: 'notOneOf',
+      default: 'default',
     },
     string: {
-      url: () => 'url',
+      url: 'url',
     },
   });
 
