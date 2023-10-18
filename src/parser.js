@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 // eslint-disable-next-line consistent-return
+/* eslint-disable no-unused-vars */
 export default (data) => {
   const parser = new DOMParser();
   const parsedDocument = parser.parseFromString(data, 'application/xml');
