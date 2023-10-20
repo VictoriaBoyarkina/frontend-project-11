@@ -1,11 +1,8 @@
-/* eslint-disable no-param-reassign */
-//* eslint-disable no-undef */
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
 import axios from 'axios';
 import _ from 'lodash';
-// eslint-disable-next-line import/no-named-as-default
 import render from './view.js';
 import parse from './parser.js';
 import ru from './locals/index.js';
@@ -41,11 +38,9 @@ const getNewPosts = (state) => {
         return Promise.resolve();
       })
       .catch(() => {
-        // eslint-disable-next-line no-param-reassign
         state.watchedState.process.error = 'Network Error';
       })
       .finally(() => {
-        // eslint-disable-next-line no-param-reassign
         state.process.processState = 'filling';
       }));
 

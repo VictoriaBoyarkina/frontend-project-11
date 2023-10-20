@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-undef */
 const renderModalWindow = (elements, state, postId) => {
   const currentPost = state.content.posts.find(({ id }) => id === postId);
   const { title, description, link } = currentPost;
