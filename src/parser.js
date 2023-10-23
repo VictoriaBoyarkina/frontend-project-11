@@ -2,6 +2,9 @@ export default (data) => {
   const parser = new DOMParser();
   const parsedDocument = parser.parseFromString(data, 'application/xml');
   const error = parsedDocument.querySelector('parsererror');
+  if (error) {
+    throw new Error('parseError');
+  }
   const feedTitle = parsedDocument.querySelector('title');
   const feedDescription = parsedDocument.querySelector('description');
   const feed = ({
